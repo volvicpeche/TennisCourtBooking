@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tennis Court Booking</title>
+    <style>
+        table { border-collapse: collapse; }
+        th, td { border: 1px solid #ccc; padding: 5px; text-align: center; }
+        .booked { background-color: #f2a0a0; }
+        .available { background-color: #a0f2a0; cursor: pointer; }
+    </style>
+</head>
+<body>
+<h1>Tennis Court Booking</h1>
+<div id="calendar">Loading...</div>
+<script>
+async function loadCalendar() {
+    const resp = await fetch('/bookings/');
+    const bookings = await resp.json();
+    const now = new Date();
+    const day = now.getDay();
+    const diff = day === 0 ? -6 : 1 - day; // Monday start
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() + diff);
+    startOfWeek.setHours(0,0,0,0);
+
+    const calendar = document.getElementById('calendar');
+    const table = document.createElement('table');
+    const headerRow = document.createElement('tr');
+    headerRow.appendChild(document.createElement('th'));
+    for (let i=0;i<7;i++) {
+        const th = document.createElement('th');
+        const d = new Date(startOfWeek);
+        d.setDate(startOfWeek.getDate()+i);
+        th.textContent = d.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
+        headerRow.appendChild(th);
+    }
+    table.appendChild(headerRow);
+
+    for (let hour=8; hour<21; hour++) {
+        const row = document.createElement('tr');
+        const timeCell = document.createElement('td');
+        timeCell.textContent = hour + ':00';
+        row.appendChild(timeCell);
+        for (let i=0; i<7; i++) {
+            const cell = document.createElement('td');
+            const cellDate = new Date(startOfWeek);
+            cellDate.setDate(startOfWeek.getDate()+i);
+            cellDate.setHours(hour,0,0,0);
+            const booking = bookings.find(b => {
+                const start = new Date(b.start);
+                const end = new Date(b.end);
+                return start.getTime() <= cellDate.getTime() && end.getTime() > cellDate.getTime();
+            });
+            if (booking) {
+                cell.className = 'booked';
+                cell.textContent = booking.name;
+            } else {
+                cell.className = 'available';
+                cell.addEventListener('click', () => createBooking(cellDate));
+                cell.textContent = '';
+            }
+            row.appendChild(cell);
+        }
+        table.appendChild(row);
+    }
+    calendar.innerHTML = '';
+    calendar.appendChild(table);
+}
+
+async function createBooking(start) {
+    const name = prompt('Your name');
+    if (!name) return;
+    const end = new Date(start);
+    end.setHours(start.getHours()+1);
+    const resp = await fetch('/bookings/', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({name, start: start.toISOString(), end: end.toISOString()})
+    });
+    if (resp.ok) {
+        alert('Booking created');
+        loadCalendar();
+    } else {
+        const data = await resp.json();
+        alert('Error: ' + data.detail);
+    }
+}
+
+loadCalendar();
+</script>
+</body>
+</html>
