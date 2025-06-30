@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Tennis Court Booking</title>
+    <link rel="stylesheet" href="https://unpkg.com/react-big-calendar/lib/css/react-big-calendar.css">
+    <style>
+      body { margin: 0; font-family: sans-serif; }
+      #root { height: 100vh; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script crossorigin src="https://unpkg.com/moment@2/min/moment.min.js"></script>
+    <script crossorigin src="https://unpkg.com/moment-timezone@0.5/builds/moment-timezone-with-data.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-big-calendar@1.11.0/dist/react-big-calendar.min.js"></script>
+    <script>
+      const { Calendar, momentLocalizer } = window.ReactBigCalendar;
+      moment.tz.setDefault('Europe/Paris');
+      const localizer = momentLocalizer(moment);
+      const events = [];
+      const startOfWeek = moment().startOf('week').add(1, 'day');
+      const nextWeek = moment(startOfWeek).add(1, 'week');
+
+      function WeekCalendar({ date }) {
+        return React.createElement(Calendar, {
+          localizer: localizer,
+          events: events,
+          defaultView: 'week',
+          views: ['week'],
+          defaultDate: date.toDate(),
+          style: { height: '45vh', margin: '20px' },
+        });
+      }
+
+      function App() {
+        return React.createElement('div', null,
+          React.createElement(WeekCalendar, { date: startOfWeek }),
+          React.createElement(WeekCalendar, { date: nextWeek })
+        );
+      }
+
+      ReactDOM.render(React.createElement(App), document.getElementById('root'));
+    </script>
+  </body>
+</html>
+
