@@ -5,8 +5,9 @@
     <style>
         table { border-collapse: collapse; }
         th, td { border: 1px solid #ccc; padding: 5px; text-align: center; }
-        .booked { background-color: #f2a0a0; }
-        .available { background-color: #a0f2a0; cursor: pointer; }
+        .available { background-color: #cccccc; cursor: pointer; }
+        .pending { background-color: orange; }
+        .confirmed { background-color: #a0f2a0; }
     </style>
 </head>
 <body>
@@ -52,8 +53,13 @@ async function loadCalendar() {
                 return start.getTime() <= cellDate.getTime() && end.getTime() > cellDate.getTime();
             });
             if (booking) {
-                cell.className = 'booked';
-                cell.textContent = booking.name;
+                if (booking.booking_status === 'pending') {
+                    cell.className = 'pending';
+                    cell.textContent = 'awaiting approval';
+                } else {
+                    cell.className = 'confirmed';
+                    cell.textContent = booking.name;
+                }
             } else {
                 cell.className = 'available';
                 cell.addEventListener('click', () => createBooking(cellDate));
@@ -78,7 +84,7 @@ async function createBooking(start) {
         body: JSON.stringify({name, start: start.toISOString(), end: end.toISOString()})
     });
     if (resp.ok) {
-        alert('Booking created');
+        alert('Booking request created');
         loadCalendar();
     } else {
         const data = await resp.json();
