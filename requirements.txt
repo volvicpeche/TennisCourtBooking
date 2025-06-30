@@ -4,3 +4,4 @@ SQLAlchemy
 pydantic
 APScheduler
 httpx
+Jinja2
