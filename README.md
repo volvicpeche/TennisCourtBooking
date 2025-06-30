@@ -12,3 +12,5 @@ A simple FastAPI application to manage tennis court reservations.
 2. Start the server: `uvicorn app.main:app --reload`
 3. Access the interactive docs at `http://localhost:8000/docs`
 
+4. Open `frontend/index.html` in a browser to view the calendar UI.
+
