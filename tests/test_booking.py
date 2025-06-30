@@ -1,4 +1,9 @@
-import sys, os
+import sys
+import os
+
+# Configure test database before importing the application
+os.environ["DATABASE_URL"] = "sqlite:///./test.db"
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from fastapi.testclient import TestClient
 from datetime import datetime, timedelta
