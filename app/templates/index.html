@@ -15,17 +15,31 @@
 <body>
 <h1>Tennis Court Booking</h1>
 <p><a href="/admin">Admin</a></p>
+<div id="week-nav">
+    <button id="prev">Previous Week</button>
+    <span id="week-range"></span>
+    <button id="next">Next Week</button>
+</div>
 <div id="calendar">Loading...</div>
 <script>
-async function loadCalendar() {
+let currentWeekStart;
+async function loadCalendar(weekStart) {
     const resp = await fetch('/bookings/');
     const bookings = await resp.json();
-    const now = new Date();
-    const day = now.getDay();
-    const diff = day === 0 ? -6 : 1 - day; // Monday start
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() + diff);
+    let startOfWeek = weekStart;
+    if (!startOfWeek) {
+        const now = new Date();
+        const day = now.getDay();
+        const diff = day === 0 ? -6 : 1 - day; // Monday start
+        startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() + diff);
+    }
     startOfWeek.setHours(0,0,0,0);
+    currentWeekStart = new Date(startOfWeek);
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    document.getElementById('week-range').textContent =
+        `${startOfWeek.toLocaleDateString()} - ${endOfWeek.toLocaleDateString()}`;
 
     const calendar = document.getElementById('calendar');
     const table = document.createElement('table');
@@ -88,12 +102,23 @@ async function createBooking(start) {
     });
     if (resp.ok) {
         alert('Booking request created');
-        loadCalendar();
+        loadCalendar(currentWeekStart);
     } else {
         const data = await resp.json();
         alert('Error: ' + data.detail);
     }
 }
+
+document.getElementById('next').addEventListener('click', () => {
+    const nextStart = new Date(currentWeekStart);
+    nextStart.setDate(currentWeekStart.getDate() + 7);
+    loadCalendar(nextStart);
+});
+document.getElementById('prev').addEventListener('click', () => {
+    const prevStart = new Date(currentWeekStart);
+    prevStart.setDate(currentWeekStart.getDate() - 7);
+    loadCalendar(prevStart);
+});
 
 loadCalendar();
 </script>

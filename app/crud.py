@@ -5,7 +5,8 @@ from sqlalchemy import and_, func
 from . import models, schemas
 
 MAX_DURATION_HOURS_PER_DAY = 2
-MAX_ADVANCE_DAYS = 7
+# Allow booking up to two weeks in advance
+MAX_ADVANCE_DAYS = 14
 TZ = timezone(timedelta(hours=2))
 
 
