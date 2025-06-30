@@ -11,7 +11,10 @@ if 'bookings' in insp.get_table_names():
     cols = [c['name'] for c in insp.get_columns('bookings')]
     if 'created_at' not in cols:
         with engine.connect() as conn:
-            conn.execute(text('ALTER TABLE bookings ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP'))
+            # SQLite does not allow adding a column with a non-constant default
+            conn.execute(text('ALTER TABLE bookings ADD COLUMN created_at DATETIME'))
+            # populate existing rows with a timestamp
+            conn.execute(text('UPDATE bookings SET created_at = CURRENT_TIMESTAMP'))
             conn.commit()
 
 app = FastAPI(title="Tennis Court Booking")
