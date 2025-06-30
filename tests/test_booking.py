@@ -1,3 +1,4 @@
+
 import sys
 import os
 from datetime import datetime, timedelta
@@ -10,6 +11,10 @@ if os.path.exists("booking.db"):
     os.remove("booking.db")
 
 from fastapi.testclient import TestClient
+
+
+
+
 
 from app.main import app
 
@@ -31,6 +36,8 @@ def test_create_and_get_booking():
     assert get_resp.status_code == 200
     assert any(b["id"] == data["id"] for b in get_resp.json())
 
+
     # Clean up database file created during the test
     if os.path.exists("booking.db"):
         os.remove("booking.db")
+
