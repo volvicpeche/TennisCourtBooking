@@ -15,6 +15,7 @@ class BookingCreate(BookingBase):
 class Booking(BookingBase):
     id: int
     booking_status: str
+    created_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
