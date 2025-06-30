@@ -39,7 +39,7 @@ def create_booking(db: Session, booking: schemas.booking.BookingCreate):
     if overlapping:
         raise ValueError("Time slot already booked")
 
-    db_booking = models.booking.Booking(**booking.dict())
+    db_booking = models.booking.Booking(**booking.dict(), booking_status="pending")
     db.add(db_booking)
     db.commit()
     db.refresh(db_booking)
@@ -51,4 +51,14 @@ def delete_booking(db: Session, booking_id: int):
     if booking:
         db.delete(booking)
         db.commit()
+    return booking
+
+
+def confirm_booking(db: Session, booking_id: int):
+    booking = db.get(models.booking.Booking, booking_id)
+    if not booking:
+        return None
+    booking.booking_status = "confirmed"
+    db.commit()
+    db.refresh(booking)
     return booking

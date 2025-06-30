@@ -9,6 +9,10 @@ client = TestClient(app)
 
 
 def test_create_and_get_booking():
+    # ensure clean state
+    existing = client.get("/bookings/")
+    for b in existing.json():
+        client.delete(f"/bookings/{b['id']}")
     start = datetime.utcnow() + timedelta(days=1)
     end = start + timedelta(hours=1)
     response = client.post(
@@ -18,7 +22,12 @@ def test_create_and_get_booking():
     assert response.status_code == 200, response.text
     data = response.json()
     assert data["name"] == "John"
+    assert data["booking_status"] == "pending"
+
+    confirm_resp = client.post(f"/bookings/{data['id']}/confirm")
+    assert confirm_resp.status_code == 200
+    assert confirm_resp.json()["booking_status"] == "confirmed"
 
     get_resp = client.get("/bookings/")
     assert get_resp.status_code == 200
-    assert any(b["id"] == data["id"] for b in get_resp.json())
+    assert any(b["id"] == data["id"] and b["booking_status"] == "confirmed" for b in get_resp.json())

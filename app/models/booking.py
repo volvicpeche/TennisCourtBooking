@@ -10,3 +10,4 @@ class Booking(Base):
     name = Column(String, index=True)
     start = Column(DateTime, nullable=False, index=True)
     end = Column(DateTime, nullable=False, index=True)
+    booking_status = Column(String, nullable=False, default="pending")

@@ -14,6 +14,7 @@ class BookingCreate(BookingBase):
 
 class Booking(BookingBase):
     id: int
+    booking_status: str
 
     class Config:
         orm_mode = True

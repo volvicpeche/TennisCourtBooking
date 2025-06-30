@@ -29,3 +29,11 @@ def delete_existing_booking(booking_id: int, db: Session = Depends(get_db)):
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
     return {"ok": True}
+
+
+@router.post("/{booking_id}/confirm", response_model=schemas.Booking)
+def confirm_existing_booking(booking_id: int, db: Session = Depends(get_db)):
+    booking = crud.confirm_booking(db, booking_id)
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    return booking
