@@ -3,15 +3,18 @@
 <head>
     <title>Tennis Court Booking</title>
     <style>
-        table { border-collapse: collapse; }
-        th, td { border: 1px solid #ccc; padding: 5px; text-align: center; }
-        .available { background-color: #cccccc; cursor: pointer; }
-        .pending { background-color: orange; }
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+        th { background-color: #f4f4f4; }
+        .available { background-color: #e0e0e0; cursor: pointer; }
+        .pending { background-color: #ffdb99; }
         .confirmed { background-color: #a0f2a0; }
     </style>
 </head>
 <body>
 <h1>Tennis Court Booking</h1>
+<p><a href="/admin">Admin</a></p>
 <div id="calendar">Loading...</div>
 <script>
 async function loadCalendar() {
