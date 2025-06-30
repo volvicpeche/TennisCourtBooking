@@ -47,7 +47,7 @@ def create_booking(db: Session, booking: schemas.booking.BookingCreate):
 
 
 def delete_booking(db: Session, booking_id: int):
-    booking = db.query(models.booking.Booking).get(booking_id)
+    booking = db.get(models.booking.Booking, booking_id)
     if booking:
         db.delete(booking)
         db.commit()
