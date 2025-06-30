@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, func
 
@@ -28,7 +28,7 @@ def create_booking(db: Session, booking: schemas.booking.BookingCreate):
         raise ValueError("Booking exceeds maximum duration per day")
 
     # check if booking is too far in future
-    if booking.start.date() > (booking.start.today() + timedelta(days=MAX_ADVANCE_DAYS)).date():
+    if booking.start.date() > (datetime.utcnow().date() + timedelta(days=MAX_ADVANCE_DAYS)):
         raise ValueError("Booking too far in advance")
 
     # prevent overlaps
