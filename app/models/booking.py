@@ -9,6 +9,7 @@ class Booking(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
+    building = Column(String, nullable=False)
     start = Column(DateTime, nullable=False, index=True)
     end = Column(DateTime, nullable=False, index=True)
     booking_status = Column(String, nullable=False, default="pending")

@@ -2,10 +2,14 @@
 
 A simple FastAPI application to manage tennis court reservations.
 
+Users must specify their building when booking. Admins can confirm or deny requests.
+
 ## Features
 - View bookings by week or day
 - Create and cancel bookings with basic validation
 - Prevent overlapping reservations
+- Specify your building when booking
+- Admins can confirm or deny reservations
 
 ## Running Locally
 

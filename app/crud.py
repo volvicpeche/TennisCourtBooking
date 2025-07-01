@@ -67,13 +67,15 @@ def create_booking(db: Session, booking: schemas.booking.BookingCreate):
     # prevent overlaps
     overlapping = db.query(models.booking.Booking).filter(
         and_(models.booking.Booking.start < end.replace(tzinfo=None),
-             models.booking.Booking.end > start.replace(tzinfo=None))
+             models.booking.Booking.end > start.replace(tzinfo=None),
+             models.booking.Booking.booking_status != "denied")
     ).first()
     if overlapping:
         raise ValueError("Time slot already booked")
 
     db_booking = models.booking.Booking(
         name=booking.name,
+        building=booking.building.value if hasattr(booking.building, "value") else booking.building,
         start=start.replace(tzinfo=None),
         end=end.replace(tzinfo=None),
         booking_status="pending",
@@ -98,6 +100,16 @@ def confirm_booking(db: Session, booking_id: int):
     if not booking:
         return None
     booking.booking_status = "confirmed"
+    db.commit()
+    db.refresh(booking)
+    return booking
+
+
+def deny_booking(db: Session, booking_id: int):
+    booking = db.get(models.booking.Booking, booking_id)
+    if not booking:
+        return None
+    booking.booking_status = "denied"
     db.commit()
     db.refresh(booking)
     return booking

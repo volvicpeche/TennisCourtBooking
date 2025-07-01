@@ -93,12 +93,19 @@ async function loadCalendar(weekStart) {
 async function createBooking(start) {
     const name = prompt('Your name');
     if (!name) return;
+    const buildings = ['1 Savoie','3 Savoie','5 Savoie','7 Savoie','9 Savoie','11 Savoie'];
+    let building = prompt('Your building (choose: ' + buildings.join(', ') + ')');
+    if (!building) return;
+    if (!buildings.includes(building)) {
+        alert('Invalid building');
+        return;
+    }
     const end = new Date(start);
     end.setHours(start.getHours()+1);
     const resp = await fetch('/bookings/', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({name, start: start.toISOString(), end: end.toISOString()})
+        body: JSON.stringify({name, building, start: start.toISOString(), end: end.toISOString()})
     });
     if (resp.ok) {
         alert('Booking request created');

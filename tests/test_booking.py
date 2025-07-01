@@ -22,7 +22,7 @@ def test_create_and_get_booking():
     end = start + timedelta(hours=1)
     response = client.post(
         "/bookings/",
-        json={"name": "John", "start": start.isoformat(), "end": end.isoformat()},
+        json={"name": "John", "building": "1 Savoie", "start": start.isoformat(), "end": end.isoformat()},
     )
     assert response.status_code == 200, response.text
     data = response.json()
@@ -36,3 +36,23 @@ def test_create_and_get_booking():
     get_resp = client.get("/bookings/")
     assert get_resp.status_code == 200
     assert any(b["id"] == data["id"] and b["booking_status"] == "confirmed" for b in get_resp.json())
+
+
+def test_deny_booking():
+    start = datetime.utcnow() + timedelta(days=2)
+    end = start + timedelta(hours=1)
+    resp = client.post(
+        "/bookings/",
+        json={"name": "Jane", "building": "3 Savoie", "start": start.isoformat(), "end": end.isoformat()},
+    )
+    assert resp.status_code == 200
+    booking = resp.json()
+    deny_resp = client.post(f"/bookings/{booking['id']}/deny")
+    assert deny_resp.status_code == 200
+    assert deny_resp.json()["booking_status"] == "denied"
+    # slot should be free
+    second_resp = client.post(
+        "/bookings/",
+        json={"name": "Other", "building": "5 Savoie", "start": start.isoformat(), "end": end.isoformat()},
+    )
+    assert second_resp.status_code == 200

@@ -16,6 +16,10 @@ if 'bookings' in insp.get_table_names():
         with engine.connect() as conn:
             conn.execute(text('ALTER TABLE bookings ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP'))
             conn.commit()
+    if 'building' not in cols:
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE bookings ADD COLUMN building TEXT DEFAULT '1 Savoie'"))
+            conn.commit()
 
 app = FastAPI(title="Tennis Court Booking")
 templates = Jinja2Templates(directory="app/templates")
