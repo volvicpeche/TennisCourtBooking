@@ -21,6 +21,28 @@
     <button id="next">Next Week</button>
 </div>
 <div id="calendar">Loading...</div>
+<div id="booking-form" style="display:none; position:fixed; top:30%; left:50%; transform:translate(-50%, -30%); background:#fff; border:1px solid #ccc; padding:20px;">
+    <h3>New Booking</h3>
+    <div>
+        <label>Name: <input type="text" id="booking-name"></label>
+    </div>
+    <div style="margin-top:10px;">
+        <label>Building:
+            <select id="booking-building">
+                <option value="1 Savoie">1 Savoie</option>
+                <option value="3 Savoie">3 Savoie</option>
+                <option value="5 Savoie">5 Savoie</option>
+                <option value="7 Savoie">7 Savoie</option>
+                <option value="9 Savoie">9 Savoie</option>
+                <option value="11 Savoie">11 Savoie</option>
+            </select>
+        </label>
+    </div>
+    <div style="margin-top:10px;">
+        <button id="booking-submit">Submit</button>
+        <button id="booking-cancel">Cancel</button>
+    </div>
+</div>
 <script>
 let currentWeekStart;
 async function loadCalendar(weekStart) {
@@ -90,23 +112,26 @@ async function loadCalendar(weekStart) {
     calendar.appendChild(table);
 }
 
-async function createBooking(start) {
-    const name = prompt('Your name');
-    if (!name) return;
-    const buildings = ['1 Savoie','3 Savoie','5 Savoie','7 Savoie','9 Savoie','11 Savoie'];
-    let building = prompt('Your building (choose: ' + buildings.join(', ') + ')');
-    if (!building) return;
-    if (!buildings.includes(building)) {
-        alert('Invalid building');
-        return;
-    }
-    const end = new Date(start);
-    end.setHours(start.getHours()+1);
+let selectedStart;
+function createBooking(start) {
+    selectedStart = start;
+    document.getElementById('booking-name').value = '';
+    document.getElementById('booking-building').selectedIndex = 0;
+    document.getElementById('booking-form').style.display = 'block';
+}
+
+document.getElementById('booking-submit').addEventListener('click', async () => {
+    const name = document.getElementById('booking-name').value.trim();
+    if (!name) { alert('Name required'); return; }
+    const building = document.getElementById('booking-building').value;
+    const end = new Date(selectedStart);
+    end.setHours(selectedStart.getHours()+1);
     const resp = await fetch('/bookings/', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({name, building, start: start.toISOString(), end: end.toISOString()})
+        body: JSON.stringify({name, building, start: selectedStart.toISOString(), end: end.toISOString()})
     });
+    document.getElementById('booking-form').style.display = 'none';
     if (resp.ok) {
         alert('Booking request created');
         loadCalendar(currentWeekStart);
@@ -114,7 +139,11 @@ async function createBooking(start) {
         const data = await resp.json();
         alert('Error: ' + data.detail);
     }
-}
+});
+
+document.getElementById('booking-cancel').addEventListener('click', () => {
+    document.getElementById('booking-form').style.display = 'none';
+});
 
 document.getElementById('next').addEventListener('click', () => {
     const nextStart = new Date(currentWeekStart);
