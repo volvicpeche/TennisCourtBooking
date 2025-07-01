@@ -14,7 +14,7 @@
 <h1>Pending Bookings</h1>
 <table id="pending-table">
     <thead>
-        <tr><th>Name</th><th>Start</th><th>End</th><th>Action</th></tr>
+        <tr><th>Name</th><th>Building</th><th>Start</th><th>End</th><th>Action</th></tr>
     </thead>
     <tbody></tbody>
 </table>
@@ -26,14 +26,20 @@ async function loadPending() {
     tbody.innerHTML = '';
     bookings.filter(b => b.booking_status === 'pending').forEach(b => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${b.name}</td><td>${new Date(b.start).toLocaleString()}</td>` +
+        tr.innerHTML = `<td>${b.name}</td><td>${b.building}</td>` +
+                       `<td>${new Date(b.start).toLocaleString()}</td>` +
                        `<td>${new Date(b.end).toLocaleString()}</td>` +
-                       `<td><button onclick="confirmBooking(${b.id})">Confirm</button></td>`;
+                       `<td><button onclick="confirmBooking(${b.id})">Confirm</button> ` +
+                       `<button onclick="denyBooking(${b.id})">Deny</button></td>`;
         tbody.appendChild(tr);
     });
 }
 async function confirmBooking(id) {
     await fetch(`/bookings/${id}/confirm`, {method:'POST'});
+    loadPending();
+}
+async function denyBooking(id) {
+    await fetch(`/bookings/${id}/deny`, {method:'POST'});
     loadPending();
 }
 loadPending();
