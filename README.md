@@ -15,6 +15,7 @@ Users must specify their building when booking. Admins can confirm or deny reque
 
 1. Install dependencies: `pip install -r requirements.txt`
 2. Start the server: `uvicorn app.main:app --reload`
+   - If the `uvicorn` command is not on your PATH, use `python -m uvicorn app.main:app --reload`.
 3. Access the interactive docs at `http://localhost:8000/docs`
 4. Access the admin panel at `/admin` (HTTP Basic auth, default credentials `admin`/`secret`)
 
