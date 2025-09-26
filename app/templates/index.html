@@ -1,159 +1,654 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="utf-8">
     <title>Tennis Court Booking</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-        th { background-color: #f4f4f4; }
-        .available { background-color: #e0e0e0; cursor: pointer; }
-        .pending { background-color: #ffdb99; }
-        .confirmed { background-color: #a0f2a0; }
+        :root {
+            --page-bg: linear-gradient(160deg, #f4f9ff 0%, #e6f0ff 45%, #f9efff 100%);
+            --text-main: #1f2937;
+            --muted: #6b7280;
+            --surface: #ffffff;
+            --border: #e5e7eb;
+            --shadow: 0 18px 40px rgba(15, 23, 42, 0.1);
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --pending: #fbbf24;
+            --confirmed: #10b981;
+            --available: #d1d5db;
+            --danger: #ef4444;
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--page-bg);
+            color: var(--text-main);
+        }
+
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        .page {
+            max-width: 1320px;
+            margin: 0 auto;
+            padding: 48px 24px 80px;
+        }
+
+        header.page-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 32px;
+        }
+
+        .title-block h1 {
+            font-size: 2.4rem;
+            margin: 0 0 8px;
+            font-weight: 700;
+        }
+
+        .title-block p {
+            margin: 0;
+            color: var(--muted);
+            max-width: 540px;
+        }
+
+        .admin-link a {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .admin-link a:hover {
+            background: rgba(37, 99, 235, 0.16);
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .legend__item {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+            font-size: 0.92rem;
+        }
+
+        .legend__dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .legend__dot--available { background: var(--available); }
+        .legend__dot--pending { background: var(--pending); }
+        .legend__dot--confirmed { background: var(--confirmed); }
+
+        .layout {
+            display: grid;
+            gap: 32px;
+            grid-template-columns: minmax(0, 1fr) 320px;
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(15, 23, 42, 0.04);
+        }
+
+        .calendar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .calendar-header__title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .week-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 12px;
+            padding: 10px 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            background: var(--surface);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12);
+        }
+
+        .btn--primary {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .btn--primary:hover { background: var(--accent-hover); }
+
+        #calendar {
+            overflow-x: auto;
+        }
+
+        .calendar-table {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .calendar-table thead {
+            background: rgba(37, 99, 235, 0.04);
+        }
+
+        .calendar-table th {
+            padding: 12px 10px;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+            font-size: 0.8rem;
+        }
+
+        .calendar-table td {
+            position: relative;
+            padding: 16px 12px;
+            text-align: left;
+            border-top: 1px solid rgba(148, 163, 184, 0.18);
+            border-right: 1px solid rgba(148, 163, 184, 0.08);
+            min-width: 110px;
+        }
+
+        .calendar-table tr td:first-child, .calendar-table tr th:first-child {
+            background: rgba(15, 23, 42, 0.04);
+            font-weight: 600;
+            color: var(--muted);
+            text-align: right;
+            padding-right: 18px;
+        }
+
+        .calendar-table tr td:first-child { border-right: none; }
+
+        .calendar-table tr:last-child td {
+            border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+        }
+
+        .slot {
+            border-radius: 16px;
+            padding: 14px 16px;
+            min-height: 84px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .slot.available {
+            background: rgba(15, 23, 42, 0.04);
+            color: var(--muted);
+            cursor: pointer;
+        }
+
+        .slot.available:hover {
+            background: rgba(37, 99, 235, 0.12);
+            color: var(--accent);
+        }
+
+        .slot.pending {
+            background: rgba(251, 191, 36, 0.18);
+            color: #8a5800;
+        }
+
+        .slot.confirmed {
+            background: rgba(16, 185, 129, 0.18);
+            color: #03543f;
+        }
+
+        .booking-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .booking-meta {
+            font-size: 0.85rem;
+            color: rgba(15, 23, 42, 0.68);
+            word-break: break-word;
+        }
+
+        aside.sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .hint-card h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+        }
+
+        .hint-card ul {
+            margin: 0;
+            padding-left: 20px;
+            color: var(--muted);
+        }
+
+        .hint-card li { margin-bottom: 10px; }
+
+        .cta-card {
+            background: linear-gradient(140deg, rgba(37, 99, 235, 0.86), rgba(99, 102, 241, 0.92));
+            color: #f8fafc;
+        }
+
+        .cta-card h2 { margin-top: 0; }
+
+        .cta-card p { margin-bottom: 18px; }
+
+        .cta-card button { background: white; color: var(--accent); }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.35);
+            backdrop-filter: blur(4px);
+            z-index: 20;
+        }
+
+        .booking-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: min(420px, calc(100% - 32px));
+            background: var(--surface);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            padding: 32px;
+            z-index: 30;
+        }
+
+        .booking-modal h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .form-control {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 18px;
+        }
+
+        .form-control label { font-weight: 600; }
+
+        .form-control input,
+        .form-control select {
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 12px;
+            font-size: 1rem;
+            color: var(--text-main);
+            background: rgba(249, 250, 251, 0.9);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .hidden { display: none !important; }
+
+        .toast {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 14px 22px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.92);
+            color: #f8fafc;
+            font-weight: 500;
+            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.25);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            z-index: 40;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, -10px);
+        }
+
+        @media (max-width: 1280px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            aside.sidebar { order: -1; }
+        }
+
+        @media (max-width: 720px) {
+            header.page-header {
+                flex-direction: column;
+                gap: 18px;
+            }
+
+            .calendar-table td, .calendar-table th {
+                padding: 12px 8px;
+            }
+
+            .slot { min-height: 70px; }
+        }
+
+        @media (max-width: 540px) {
+            .week-nav { width: 100%; justify-content: space-between; }
+
+            .legend { gap: 12px; }
+
+            .legend__item { width: calc(50% - 12px); justify-content: center; }
+        }
     </style>
 </head>
 <body>
-<h1>Tennis Court Booking</h1>
-<p><a href="/admin">Admin</a></p>
-<div id="week-nav">
-    <button id="prev">Previous Week</button>
-    <span id="week-range"></span>
-    <button id="next">Next Week</button>
+<div class="page">
+    <header class="page-header">
+        <div class="title-block">
+            <h1>Tennis Court Booking</h1>
+            <p>Reserve a one-hour slot, see availability in a glance, and keep your neighbours in the loop. Admins can manage requests from the dedicated dashboard.</p>
+        </div>
+        <div class="admin-link">
+            <a href="/admin">Open admin console</a>
+        </div>
+    </header>
+
+    <div class="legend">
+        <span class="legend__item"><span class="legend__dot legend__dot--available"></span>Available</span>
+        <span class="legend__item"><span class="legend__dot legend__dot--pending"></span>Awaiting approval</span>
+        <span class="legend__item"><span class="legend__dot legend__dot--confirmed"></span>Booked</span>
+    </div>
+
+    <section class="layout">
+        <div class="card">
+            <div class="calendar-header">
+                <div class="calendar-header__title">
+                    <span id="week-range">Loading...</span>
+                </div>
+                <div class="week-nav">
+                    <button class="btn" id="prev">Prev week</button>
+                    <button class="btn" id="today">Current week</button>
+                    <button class="btn" id="next">Next week</button>
+                </div>
+            </div>
+            <div id="calendar"></div>
+        </div>
+
+        <aside class="sidebar">
+            <div class="card hint-card">
+                <h2>Booking rules</h2>
+                <ul>
+                    <li>Slots are 60 minutes and limited to two hours per day.</li>
+                    <li>Book up to 14 days ahead. Need more? Contact the admin team.</li>
+                    <li>Include your building so we can reach you if plans change.</li>
+                    <li>Pending requests auto-confirm after 48 hours.</li>
+                </ul>
+            </div>
+            <div class="card cta-card">
+                <h2>Need admin access?</h2>
+                <p>Head to the admin console with your credentials to approve requests and keep the schedule tidy.</p>
+                <button class="btn btn--primary" onclick="window.location.href='/admin'">Go to admin</button>
+            </div>
+        </aside>
+    </section>
 </div>
-<div id="calendar">Loading...</div>
-<div id="booking-form" style="display:none; position:fixed; top:30%; left:50%; transform:translate(-50%, -30%); background:#fff; border:1px solid #ccc; padding:20px;">
-    <h3>New Booking</h3>
-    <div>
-        <label>Name: <input type="text" id="booking-name"></label>
+
+<div id="modal-overlay" class="modal-overlay hidden"></div>
+<div id="booking-form" class="booking-modal hidden">
+    <h3>Request a booking</h3>
+    <div class="form-control">
+        <label for="booking-name">Your name</label>
+        <input type="text" id="booking-name" placeholder="Jane Doe" autocomplete="name">
     </div>
-    <div style="margin-top:10px;">
-        <label>Building:
-            <select id="booking-building">
-                <option value="1 Savoie">1 Savoie</option>
-                <option value="3 Savoie">3 Savoie</option>
-                <option value="5 Savoie">5 Savoie</option>
-                <option value="7 Savoie">7 Savoie</option>
-                <option value="9 Savoie">9 Savoie</option>
-                <option value="11 Savoie">11 Savoie</option>
-            </select>
-        </label>
+    <div class="form-control">
+        <label for="booking-building">Building</label>
+        <select id="booking-building">
+            <option value="1 Savoie">1 Savoie</option>
+            <option value="3 Savoie">3 Savoie</option>
+            <option value="5 Savoie">5 Savoie</option>
+            <option value="7 Savoie">7 Savoie</option>
+            <option value="9 Savoie">9 Savoie</option>
+            <option value="11 Savoie">11 Savoie</option>
+        </select>
     </div>
-    <div style="margin-top:10px;">
-        <button id="booking-submit">Submit</button>
-        <button id="booking-cancel">Cancel</button>
+    <div class="form-actions">
+        <button class="btn" id="booking-cancel">Cancel</button>
+        <button class="btn btn--primary" id="booking-submit">Send request</button>
     </div>
 </div>
+
+<div id="toast" class="toast"></div>
+
 <script>
 let currentWeekStart;
+let selectedStart;
+const modal = document.getElementById('booking-form');
+const overlay = document.getElementById('modal-overlay');
+const toast = document.getElementById('toast');
+let toastTimer;
+
+function openModal() {
+    overlay.classList.remove('hidden');
+    modal.classList.remove('hidden');
+}
+
+function closeModal() {
+    overlay.classList.add('hidden');
+    modal.classList.add('hidden');
+}
+
+function showToast(message) {
+    toast.textContent = message;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+        toast.classList.remove('show');
+    }, 2600);
+}
+
 async function loadCalendar(weekStart) {
     const resp = await fetch('/bookings/');
     const bookings = await resp.json();
+    const activeBookings = bookings.filter(b => b.booking_status !== 'denied');
+
     let startOfWeek = weekStart;
     if (!startOfWeek) {
         const now = new Date();
         const day = now.getDay();
-        const diff = day === 0 ? -6 : 1 - day; // Monday start
+        const diff = day === 0 ? -6 : 1 - day;
         startOfWeek = new Date(now);
         startOfWeek.setDate(now.getDate() + diff);
     }
-    startOfWeek.setHours(0,0,0,0);
+
+    startOfWeek = new Date(startOfWeek);
+    startOfWeek.setHours(0, 0, 0, 0);
     currentWeekStart = new Date(startOfWeek);
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(startOfWeek.getDate() + 6);
-    document.getElementById('week-range').textContent =
-        `${startOfWeek.toLocaleDateString()} - ${endOfWeek.toLocaleDateString()}`;
+    document.getElementById('week-range').textContent = startOfWeek.toLocaleDateString() + ' to ' + endOfWeek.toLocaleDateString();
 
-    const calendar = document.getElementById('calendar');
     const table = document.createElement('table');
+    table.className = 'calendar-table';
+
+    const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
     headerRow.appendChild(document.createElement('th'));
-    for (let i=0;i<7;i++) {
+    const dayFormatter = new Intl.DateTimeFormat(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+    for (let i = 0; i < 7; i++) {
         const th = document.createElement('th');
-        const d = new Date(startOfWeek);
-        d.setDate(startOfWeek.getDate()+i);
-        th.textContent = d.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
+        const day = new Date(startOfWeek);
+        day.setDate(startOfWeek.getDate() + i);
+        th.textContent = dayFormatter.format(day);
         headerRow.appendChild(th);
     }
-    table.appendChild(headerRow);
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
 
-    for (let hour=8; hour<21; hour++) {
+    const tbody = document.createElement('tbody');
+    const timeFormatter = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' });
+
+    for (let hour = 8; hour < 21; hour++) {
         const row = document.createElement('tr');
         const timeCell = document.createElement('td');
-        timeCell.textContent = hour + ':00';
+        const timeRef = new Date(startOfWeek);
+        timeRef.setHours(hour, 0, 0, 0);
+        timeCell.textContent = timeFormatter.format(timeRef);
         row.appendChild(timeCell);
-        for (let i=0; i<7; i++) {
+
+        for (let i = 0; i < 7; i++) {
             const cell = document.createElement('td');
+            const slot = document.createElement('div');
+            slot.className = 'slot';
             const cellDate = new Date(startOfWeek);
-            cellDate.setDate(startOfWeek.getDate()+i);
-            cellDate.setHours(hour,0,0,0);
-            const booking = bookings.find(b => {
+            cellDate.setDate(startOfWeek.getDate() + i);
+            cellDate.setHours(hour, 0, 0, 0);
+
+            const booking = activeBookings.find(b => {
                 const start = new Date(b.start);
                 const end = new Date(b.end);
                 return start.getTime() <= cellDate.getTime() && end.getTime() > cellDate.getTime();
             });
+
             if (booking) {
+                slot.classList.add(booking.booking_status === 'pending' ? 'pending' : 'confirmed');
                 if (booking.booking_status === 'pending') {
-                    cell.className = 'pending';
-                    cell.textContent = 'awaiting approval';
+                    slot.innerHTML = '<span class="booking-name">Pending...</span><span class="booking-meta">' + booking.name + ' - ' + booking.building + '</span>';
+                    slot.title = 'Awaiting admin approval';
                 } else {
-                    cell.className = 'confirmed';
-                    cell.textContent = booking.name;
+                    slot.innerHTML = '<span class="booking-name">' + booking.name + '</span><span class="booking-meta">' + booking.building + '</span>';
+                    slot.title = 'Confirmed booking';
                 }
             } else {
-                cell.className = 'available';
-                cell.addEventListener('click', () => createBooking(cellDate));
-                cell.textContent = '';
+                slot.classList.add('available');
+                slot.textContent = 'Click to book';
+                slot.title = 'Create a booking for this hour';
+                slot.addEventListener('click', () => {
+                    selectedStart = new Date(cellDate);
+                    document.getElementById('booking-name').value = '';
+                    document.getElementById('booking-building').selectedIndex = 0;
+                    openModal();
+                });
             }
+
+            cell.appendChild(slot);
             row.appendChild(cell);
         }
-        table.appendChild(row);
+
+        tbody.appendChild(row);
     }
+
+    table.appendChild(tbody);
+    const calendar = document.getElementById('calendar');
     calendar.innerHTML = '';
     calendar.appendChild(table);
 }
 
-let selectedStart;
-function createBooking(start) {
-    selectedStart = start;
-    document.getElementById('booking-name').value = '';
-    document.getElementById('booking-building').selectedIndex = 0;
-    document.getElementById('booking-form').style.display = 'block';
+function goToCurrentWeek() {
+    loadCalendar(new Date());
 }
-
-document.getElementById('booking-submit').addEventListener('click', async () => {
-    const name = document.getElementById('booking-name').value.trim();
-    if (!name) { alert('Name required'); return; }
-    const building = document.getElementById('booking-building').value;
-    const end = new Date(selectedStart);
-    end.setHours(selectedStart.getHours()+1);
-    const resp = await fetch('/bookings/', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({name, building, start: selectedStart.toISOString(), end: end.toISOString()})
-    });
-    document.getElementById('booking-form').style.display = 'none';
-    if (resp.ok) {
-        alert('Booking request created');
-        loadCalendar(currentWeekStart);
-    } else {
-        const data = await resp.json();
-        alert('Error: ' + data.detail);
-    }
-});
-
-document.getElementById('booking-cancel').addEventListener('click', () => {
-    document.getElementById('booking-form').style.display = 'none';
-});
 
 document.getElementById('next').addEventListener('click', () => {
     const nextStart = new Date(currentWeekStart);
     nextStart.setDate(currentWeekStart.getDate() + 7);
     loadCalendar(nextStart);
 });
+
 document.getElementById('prev').addEventListener('click', () => {
     const prevStart = new Date(currentWeekStart);
     prevStart.setDate(currentWeekStart.getDate() - 7);
     loadCalendar(prevStart);
+});
+
+document.getElementById('today').addEventListener('click', goToCurrentWeek);
+
+document.getElementById('booking-submit').addEventListener('click', async () => {
+    const name = document.getElementById('booking-name').value.trim();
+    if (!name) {
+        showToast('Please provide your name.');
+        return;
+    }
+    const building = document.getElementById('booking-building').value;
+    const end = new Date(selectedStart);
+    end.setHours(selectedStart.getHours() + 1);
+
+    const resp = await fetch('/bookings/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            name,
+            building,
+            start: selectedStart.toISOString(),
+            end: end.toISOString()
+        })
+    });
+
+    closeModal();
+
+    if (resp.ok) {
+        showToast('Booking request submitted.');
+        loadCalendar(currentWeekStart);
+    } else {
+        const data = await resp.json();
+        showToast('Error: ' + data.detail);
+    }
+});
+
+document.getElementById('booking-cancel').addEventListener('click', () => {
+    closeModal();
+});
+
+overlay.addEventListener('click', closeModal);
+window.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+        closeModal();
+    }
 });
 
 loadCalendar();

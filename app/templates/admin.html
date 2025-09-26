@@ -1,47 +1,353 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Admin - Pending Bookings</title>
+    <meta charset="utf-8">
+    <title>Tennis Court Booking - Admin</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-        th { background-color: #f4f4f4; }
-        button { padding: 5px 10px; }
+        :root {
+            --page-bg: linear-gradient(160deg, #f4f9ff 0%, #e6f0ff 45%, #f9efff 100%);
+            --text-main: #111827;
+            --muted: #6b7280;
+            --surface: #ffffff;
+            --border: #e5e7eb;
+            --shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --danger: #ef4444;
+            --success: #10b981;
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--page-bg);
+            color: var(--text-main);
+        }
+
+        .page {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 48px 24px 80px;
+        }
+
+        header.page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .title-block h1 {
+            margin: 0 0 6px;
+            font-size: 2rem;
+        }
+
+        .title-block p {
+            margin: 0;
+            color: var(--muted);
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 10px;
+            padding: 10px 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            background: var(--surface);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 9px 16px rgba(15, 23, 42, 0.12);
+        }
+
+        .btn--primary {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .btn--primary:hover { background: var(--accent-hover); }
+
+        .card {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(15, 23, 42, 0.05);
+        }
+
+        .stats {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .stat {
+            flex: 1 1 160px;
+            padding: 16px 18px;
+            border-radius: 16px;
+            background: rgba(37, 99, 235, 0.08);
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .stat[data-variant='danger'] { background: rgba(239, 68, 68, 0.08); color: var(--danger); }
+        .stat[data-variant='success'] { background: rgba(16, 185, 129, 0.12); color: var(--success); }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        thead {
+            background: rgba(37, 99, 235, 0.06);
+        }
+
+        th, td {
+            text-align: left;
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+            font-size: 0.95rem;
+        }
+
+        th {
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        tbody tr:hover {
+            background: rgba(37, 99, 235, 0.06);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(251, 191, 36, 0.2);
+            color: #8a5800;
+            font-weight: 600;
+            font-size: 0.82rem;
+        }
+
+        .booking-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn--success {
+            background: rgba(16, 185, 129, 0.14);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+
+        .btn--danger {
+            background: rgba(239, 68, 68, 0.12);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--muted);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 14px 22px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.92);
+            color: #f8fafc;
+            font-weight: 500;
+            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.25);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            z-index: 40;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, -10px);
+        }
+
+        @media (max-width: 720px) {
+            header.page-header {
+                flex-direction: column;
+                gap: 18px;
+                align-items: flex-start;
+            }
+
+            .actions { width: 100%; }
+            .actions .btn { flex: 1; }
+            table { display: block; overflow-x: auto; }
+        }
     </style>
 </head>
 <body>
-<h1>Pending Bookings</h1>
-<table id="pending-table">
-    <thead>
-        <tr><th>Name</th><th>Building</th><th>Start</th><th>End</th><th>Action</th></tr>
-    </thead>
-    <tbody></tbody>
-</table>
+<div class="page">
+    <header class="page-header">
+        <div class="title-block">
+            <h1>Admin dashboard</h1>
+            <p>Approve or deny pending bookings. Confirmed reservations stay in the schedule until users create new ones.</p>
+        </div>
+        <div class="actions">
+            <button class="btn" onclick="window.location.href='/'">Back to calendar</button>
+            <button class="btn btn--primary" id="refresh">Refresh</button>
+        </div>
+    </header>
+
+    <div class="card">
+        <div class="stats">
+            <div class="stat" id="stat-pending">Pending: 0</div>
+            <div class="stat" data-variant="success" id="stat-confirmed">Confirmed today: 0</div>
+            <div class="stat" data-variant="danger" id="stat-denied">Denied today: 0</div>
+        </div>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr><th>Name</th><th>Building</th><th>Window</th><th>Status</th><th>Actions</th></tr>
+                </thead>
+                <tbody id="pending-body">
+                    <tr class="empty-state"><td colspan="5">No pending requests. Enjoy the quiet time!</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
 <script>
+const tbody = document.getElementById('pending-body');
+const toast = document.getElementById('toast');
+const statPending = document.getElementById('stat-pending');
+const statConfirmed = document.getElementById('stat-confirmed');
+const statDenied = document.getElementById('stat-denied');
+let confirmedToday = 0;
+let deniedToday = 0;
+let toastTimer;
+
+function showToast(message) {
+    toast.textContent = message;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2400);
+}
+
+function formatRange(startIso, endIso) {
+    const start = new Date(startIso);
+    const end = new Date(endIso);
+    const dayFormatter = new Intl.DateTimeFormat(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+    const timeFormatter = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' });
+    return dayFormatter.format(start) + ' ' + timeFormatter.format(start) + ' - ' + timeFormatter.format(end);
+}
+
 async function loadPending() {
     const resp = await fetch('/bookings/');
     const bookings = await resp.json();
-    const tbody = document.querySelector('#pending-table tbody');
+    const pending = bookings.filter(b => b.booking_status === 'pending');
+    const confirmed = bookings.filter(b => b.booking_status === 'confirmed');
+    const denied = bookings.filter(b => b.booking_status === 'denied');
+
+    statPending.textContent = 'Pending: ' + pending.length;
+    statConfirmed.textContent = 'Confirmed today: ' + confirmedToday;
+    statDenied.textContent = 'Denied today: ' + deniedToday;
+
     tbody.innerHTML = '';
-    bookings.filter(b => b.booking_status === 'pending').forEach(b => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${b.name}</td><td>${b.building}</td>` +
-                       `<td>${new Date(b.start).toLocaleString()}</td>` +
-                       `<td>${new Date(b.end).toLocaleString()}</td>` +
-                       `<td><button onclick="confirmBooking(${b.id})">Confirm</button> ` +
-                       `<button onclick="denyBooking(${b.id})">Deny</button></td>`;
-        tbody.appendChild(tr);
+    if (pending.length === 0) {
+        const row = document.createElement('tr');
+        row.className = 'empty-state';
+        const cell = document.createElement('td');
+        cell.colSpan = 5;
+        cell.textContent = 'No pending requests. Enjoy the quiet time!';
+        row.appendChild(cell);
+        tbody.appendChild(row);
+        return;
+    }
+
+    pending.sort((a, b) => new Date(a.start) - new Date(b.start));
+    pending.forEach(booking => {
+        const row = document.createElement('tr');
+
+        const nameCell = document.createElement('td');
+        nameCell.textContent = booking.name;
+        row.appendChild(nameCell);
+
+        const buildingCell = document.createElement('td');
+        buildingCell.textContent = booking.building;
+        row.appendChild(buildingCell);
+
+        const dateCell = document.createElement('td');
+        dateCell.textContent = formatRange(booking.start, booking.end);
+        row.appendChild(dateCell);
+
+        const statusCell = document.createElement('td');
+        statusCell.innerHTML = '<span class="status-badge">Pending</span>';
+        row.appendChild(statusCell);
+
+        const actionCell = document.createElement('td');
+        const actions = document.createElement('div');
+        actions.className = 'booking-actions';
+
+        const confirmBtn = document.createElement('button');
+        confirmBtn.className = 'btn btn--success';
+        confirmBtn.textContent = 'Confirm';
+        confirmBtn.addEventListener('click', async () => {
+            const result = await fetch('/bookings/' + booking.id + '/confirm', { method: 'POST' });
+            if (result.ok) {
+                confirmedToday += 1;
+                showToast('Marked as confirmed.');
+                loadPending();
+            } else {
+                showToast('Unable to confirm booking.');
+            }
+        });
+
+        const denyBtn = document.createElement('button');
+        denyBtn.className = 'btn btn--danger';
+        denyBtn.textContent = 'Deny';
+        denyBtn.addEventListener('click', async () => {
+            const result = await fetch('/bookings/' + booking.id + '/deny', { method: 'POST' });
+            if (result.ok) {
+                deniedToday += 1;
+                showToast('Booking denied.');
+                loadPending();
+            } else {
+                showToast('Unable to deny booking.');
+            }
+        });
+
+        actions.appendChild(confirmBtn);
+        actions.appendChild(denyBtn);
+        actionCell.appendChild(actions);
+        row.appendChild(actionCell);
+
+        tbody.appendChild(row);
     });
 }
-async function confirmBooking(id) {
-    await fetch(`/bookings/${id}/confirm`, {method:'POST'});
-    loadPending();
-}
-async function denyBooking(id) {
-    await fetch(`/bookings/${id}/deny`, {method:'POST'});
-    loadPending();
-}
+
+document.getElementById('refresh').addEventListener('click', loadPending);
+
 loadPending();
 </script>
 </body>

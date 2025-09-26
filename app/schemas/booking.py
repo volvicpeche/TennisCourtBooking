@@ -1,6 +1,12 @@
 from datetime import datetime
-from pydantic import BaseModel
+from typing import Optional
+from pydantic import BaseModel, field_validator, ConfigDict
 from enum import Enum
+
+from app.core.config import get_settings
+
+settings = get_settings()
+TZ = settings.local_timezone
 
 
 class BuildingEnum(str, Enum):
@@ -18,6 +24,17 @@ class BookingBase(BaseModel):
     start: datetime
     end: datetime
 
+    @field_validator("start", "end", mode="before")
+    @classmethod
+    def ensure_timezone(cls, value):
+        if value is None:
+            return value
+        if isinstance(value, str):
+            value = datetime.fromisoformat(value)
+        if value.tzinfo is None:
+            return value.replace(tzinfo=TZ)
+        return value.astimezone(TZ)
+
 
 class BookingCreate(BookingBase):
     pass
@@ -26,7 +43,17 @@ class BookingCreate(BookingBase):
 class Booking(BookingBase):
     id: int
     booking_status: str
-    created_at: datetime
+    created_at: Optional[datetime]
 
-    class Config:
-        orm_mode = True
+    @field_validator("created_at", mode="before")
+    @classmethod
+    def ensure_created_timezone(cls, value):
+        if value is None:
+            return value
+        if isinstance(value, str):
+            value = datetime.fromisoformat(value)
+        if value.tzinfo is None:
+            return value.replace(tzinfo=TZ)
+        return value.astimezone(TZ)
+
+    model_config = ConfigDict(from_attributes=True)

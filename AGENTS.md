@@ -18,9 +18,9 @@ This document tracks automated agents, background jobs, and third-party integrat
 ## Onboarding Notes
 
 - Python 3.10+ recommended; create a virtual environment and run `pip install -r requirements.txt`.
-- Copy `.env.example` to `.env` and set `DATABASE_URL` (SQLite path is fine for local work). FastAPI loads this via `python-dotenv`.
+- Copy `.env.example` to `.env` and set `DATABASE_URL` to your Supabase Postgres connection string (include `sslmode=require`). FastAPI loads this via `python-dotenv`.
 - Optional admin credentials come from `ADMIN_USERNAME` and `ADMIN_PASSWORD`; defaults are `admin` / `secret` and should be overridden outside local development.
-- Run `uvicorn app.main:app --reload` for local testing and `pytest` to validate automation behaviour (`tests/test_booking.py`, `tests/test_admin_auth.py`).
+- Run `uvicorn app.main:app --reload` for local testing and `pytest` to validate automation behaviour (`tests/test_booking.py`, `tests/test_admin_auth.py`) against a Supabase/Postgres database.
 
 ## Credentials & Storage
 
