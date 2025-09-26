@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    database_url: str = "sqlite:///./booking.db"
+    database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/postgres"
     admin_username: str = "admin"
     admin_password: str = "secret"
     timezone_offset_hours: int = 2

@@ -7,3 +7,5 @@ httpx
 Jinja2
 python-dotenv
 pydantic-settings
+psycopg[binary]
+pytest

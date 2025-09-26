@@ -32,7 +32,7 @@ def _ensure_schema() -> None:
         try:
             if "created_at" not in columns:
                 connection.execute(
-                    text("ALTER TABLE bookings ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP")
+                    text("ALTER TABLE bookings ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
                 )
             if "building" not in columns:
                 connection.execute(
